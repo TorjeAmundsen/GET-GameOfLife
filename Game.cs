@@ -5,10 +5,12 @@
         static char[,] _cells;
         static int _cols;
         static int _rows;
+        static int _totalCellsAlive;
         public static void Run()
         {
+            _totalCellsAlive = 0;
             _cols = Console.WindowWidth;
-            _rows = Console.WindowHeight - 2;
+            _rows = Console.WindowHeight - 3;
             _cells = new char[_cols, _rows];
 
             var random = new Random();
@@ -19,11 +21,13 @@
                 {
                     int rng = random.Next(0, 2);
                     _cells[i, j] = rng == 1 ? 'O' : ' ';
+                    if (_cells[i, j] == 'O') _totalCellsAlive++;
                 }
             }
             Console.CursorVisible = false;
             while (true)
             {
+                Console.ForegroundColor = ConsoleColor.White;
                 string output = "";
                 for (int i = 0; i < _rows; ++i)
                 {
@@ -35,6 +39,9 @@
                 }
                 Console.SetCursorPosition(0, 0);
                 Console.WriteLine(output);
+                Console.Write("Total cells alive: ");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write(_totalCellsAlive.ToString().PadLeft(4, ' '));
                 Thread.Sleep(100);
                 Update();
             }
@@ -43,6 +50,7 @@
         private static void Update()
         {
             var newCells = new char[_cols, _rows];
+            _totalCellsAlive = 0;
             for (int i = 0; i < _cols; ++i)
             {
                 for (int j = 0; j < _rows; ++j)
@@ -53,6 +61,7 @@
                         (isAlive && aliveNeighborCount is 2 or 3)
                         || (!isAlive && aliveNeighborCount == 3);
                     newCells[i, j] = isNewCellAlive ? 'O' : ' ';
+                    if (isNewCellAlive) _totalCellsAlive++;
                 }
             }
             _cells = newCells;
