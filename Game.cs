@@ -6,13 +6,20 @@
         static int _cols;
         static int _rows;
         static int _totalCellsAlive;
-        public static void Run()
+        static int _peakPopulation;
+        static int _lowestPopulation;
+        static int _populationDelta;
+        static Game()
         {
             _totalCellsAlive = 0;
             _cols = Console.WindowWidth;
             _rows = Console.WindowHeight - 3;
             _cells = new char[_cols, _rows];
-
+            _peakPopulation = 0;
+            _lowestPopulation = 0;
+        }
+        public static void Run()
+        {
             var random = new Random();
 
             for (int i = 0; i < _cols; ++i)
@@ -21,7 +28,12 @@
                 {
                     int rng = random.Next(0, 2);
                     _cells[i, j] = rng == 1 ? 'O' : ' ';
-                    if (_cells[i, j] == 'O') _totalCellsAlive++;
+                    if (_cells[i, j] == 'O')
+                    {
+                        _totalCellsAlive++;
+                        _peakPopulation++;
+                        _lowestPopulation++;
+                    }
                 }
             }
             Console.CursorVisible = false;
@@ -39,9 +51,10 @@
                 }
                 Console.SetCursorPosition(0, 0);
                 Console.WriteLine(output);
-                Console.Write("Total cells alive: ");
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write(_totalCellsAlive.ToString().PadLeft(4, ' '));
+                DisplayDataWithColor("  Current population: ", _totalCellsAlive, ConsoleColor.Cyan);
+                DisplayDataWithColor("    Peak population: ", _peakPopulation, ConsoleColor.Green);
+                DisplayDataWithColor("    Lowest population: ", _lowestPopulation, ConsoleColor.Red);
+                DisplayDataWithColor("    Delta: ", _populationDelta, _populationDelta < 0 ? ConsoleColor.Red : ConsoleColor.Green);
                 Thread.Sleep(100);
                 Update();
             }
@@ -50,6 +63,7 @@
         private static void Update()
         {
             var newCells = new char[_cols, _rows];
+            int oldCellsAlive = _totalCellsAlive;
             _totalCellsAlive = 0;
             for (int i = 0; i < _cols; ++i)
             {
@@ -64,6 +78,9 @@
                     if (isNewCellAlive) _totalCellsAlive++;
                 }
             }
+            if (_totalCellsAlive > _peakPopulation) _peakPopulation = _totalCellsAlive;
+            if (_totalCellsAlive < _lowestPopulation) _lowestPopulation = _totalCellsAlive;
+            _populationDelta = _totalCellsAlive - oldCellsAlive;
             _cells = newCells;
         }
         private static int CountAliveNeighbors(int col, int row)
@@ -88,6 +105,13 @@
                 if (_cells[newCol, newRow] == 'O') count++;
             }
             return count;
+        }
+        private static void DisplayDataWithColor(string label, int data, ConsoleColor color)
+        {
+            Console.Write(label);
+            Console.ForegroundColor = color;
+            Console.Write(data.ToString().PadLeft(4, ' '));
+            Console.ForegroundColor = ConsoleColor.White;
         }
     }
 }
